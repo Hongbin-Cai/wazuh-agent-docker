@@ -5,6 +5,10 @@
 # Ref4, [在 Pod 里使用 ConfigMap 数据](https://k8smeetup.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
 # Ref5, [Wazuh3.9Doc-UM-regiAgents-UsingAPI](https://documentation.wazuh.com/3.9/user-manual/registering/restful-api-register.html#restful-api-register)
 
+# task: see what makes host visitable for agent container
+# Ref6, [Kubernetes Volumes Guide](https://matthewpalmer.net/kubernetes-app-developer/articles/kubernetes-volumes-example-nfs-persistent-volume.html](https://matthewpalmer.net/kubernetes-app-developer/articles/kubernetes-volumes-example-nfs-persistent-volume.html)
+
+
 # A minimal Ubuntu base image
 FROM phusion/baseimage:latest
 
@@ -18,16 +22,15 @@ FROM phusion/baseimage:latest
 # Set repositories
 RUN apt-cache search gnupg2 && apt-get update && \
     apt-get install -y curl apt-transport-https lsb-release gnupg2 && \
-    echo "END"
-    # curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - && \
-    # echo "deb https://packages.wazuh.com/3.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list && \
-    # apt-get update && \
-    ## HARDCODED VARIABLE
-    # WAZUH_MANAGER_IP="10.0.0.2" apt-get install -y wazuh-agent && \
+    curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - && \
+    echo "deb https://packages.wazuh.com/3.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list && \
+    apt-get update && \
+    # HARDCODED VARIABLE
+    WAZUH_MANAGER_IP="10.0.0.2" apt-get install -y wazuh-agent && \
     # apt-get install wazuh-agent && \
     # disable wazuh-agent update
-    # sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list && \
-    # apt-get update
+    sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list && \
+    apt-get update
 
 # Register Agent
 # Sync calls are due to https://github.com/docker/docker/issues/9547
@@ -39,3 +42,13 @@ RUN apt-cache search gnupg2 && apt-get update && \
 # It seems no need to create volume for config.
 # VOLUME ["/var/ossec/etc"]
 
+# Copy init and entrypoint scripts
+RUN mkdir /entrypoint-scripts
+COPY script/entrypoint.sh /entrypoint.sh
+COPY script/wazuh-agent.init.sh /entrypoint-scripts/wazuh-agent.init.sh
+
+# grant permission to scripts
+RUN chmod 755 /entrypoint.sh && \
+   chmod 755 /entrypoint-scripts/wazuh-agent.init.sh
+   
+ENTRYPOINT ["/entrypoint.sh"]
