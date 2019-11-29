@@ -1,23 +1,5 @@
-
-# Ref1, [HOW-TO build image](https://yeasy.gitbooks.io/docker_practice/image/build.html)
-# Ref2, [Dockerfile Ref](https://docs.docker.com/engine/reference/builder/)
-# Ref3, [Configure a Pod to Use a ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
-# Ref4, [在 Pod 里使用 ConfigMap 数据](https://k8smeetup.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/)
-# Ref5, [Wazuh3.9Doc-UM-regiAgents-UsingAPI](https://documentation.wazuh.com/3.9/user-manual/registering/restful-api-register.html#restful-api-register)
-
-# task: see what makes host visitable for agent container
-# Ref6, [Kubernetes Volumes Guide](https://matthewpalmer.net/kubernetes-app-developer/articles/kubernetes-volumes-example-nfs-persistent-volume.html](https://matthewpalmer.net/kubernetes-app-developer/articles/kubernetes-volumes-example-nfs-persistent-volume.html)
-
-
 # A minimal Ubuntu base image
 FROM phusion/baseimage:latest
-
-# ARG WAZUH_AGENT_VERSION=3.9.1-2
-
-# ENV random="" \
-#     random2=""
-
-# ARG TEMPLATE_VERSION="v3.9.1"
 
 # Set repositories
 RUN apt-cache search gnupg2 && apt-get update && \
@@ -33,16 +15,6 @@ RUN apt-cache search gnupg2 && apt-get update && \
     sed -i "s/udp/tcp/" /var/ossec/etc/ossec.conf && \
     apt-get update
 
-# Register Agent
-# Sync calls are due to https://github.com/docker/docker/issues/9547
-
-# COPY config/api-register-agent.sh /api-register-agent.sh
-# RUN chmod 755 /api-register-agent.sh && \
-#     sync && /api-register-agent.sh
-
-# It seems no need to create volume for config.
-# VOLUME ["/var/ossec/etc"]
-
 # Copy init and entrypoint scripts
 RUN mkdir /entrypoint-scripts
 COPY script/entrypoint.sh /entrypoint.sh
@@ -50,9 +22,8 @@ COPY script/entrypoint.sh /entrypoint.sh
 # grant permission to scripts
 RUN chmod 755 /entrypoint.sh
 
-# 
+# Copy services
 COPY script/wazuh-agent.runit.service /etc/service/wazuh-agent/run
-
 RUN chmod +x /etc/service/wazuh-agent/run
 
 ENTRYPOINT ["/entrypoint.sh"]
