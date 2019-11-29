@@ -18,15 +18,16 @@ FROM phusion/baseimage:latest
 # Set repositories
 RUN apt-cache search gnupg2 && apt-get update && \
     apt-get install -y curl apt-transport-https lsb-release gnupg2 && \
-    curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - && \
-    echo "deb https://packages.wazuh.com/3.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list && \
-    apt-get update && \
+    echo "END"
+    # curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - && \
+    # echo "deb https://packages.wazuh.com/3.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list && \
+    # apt-get update && \
     ## HARDCODED VARIABLE
-    WAZUH_MANAGER_IP="10.0.0.2" apt-get install -y wazuh-agent && \
+    # WAZUH_MANAGER_IP="10.0.0.2" apt-get install -y wazuh-agent && \
     # apt-get install wazuh-agent && \
     # disable wazuh-agent update
-    sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list && \
-    apt-get update
+    # sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list && \
+    # apt-get update
 
 # Register Agent
 # Sync calls are due to https://github.com/docker/docker/issues/9547
