@@ -26,10 +26,11 @@ RUN apt-cache search gnupg2 && apt-get update && \
     echo "deb https://packages.wazuh.com/3.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list && \
     apt-get update && \
     # HARDCODED VARIABLE
-    WAZUH_MANAGER_IP="10.0.0.2" apt-get install -y wazuh-agent && \
+    WAZUH_MANAGER_IP="*********" apt-get install -y wazuh-agent && \
     # apt-get install wazuh-agent && \
     # disable wazuh-agent update
     sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list && \
+    sed -i "s/udp/tcp/" /var/ossec/etc/ossec.conf && \
     apt-get update
 
 # Register Agent
@@ -45,10 +46,13 @@ RUN apt-cache search gnupg2 && apt-get update && \
 # Copy init and entrypoint scripts
 RUN mkdir /entrypoint-scripts
 COPY script/entrypoint.sh /entrypoint.sh
-COPY script/wazuh-agent.init.sh /entrypoint-scripts/wazuh-agent.init.sh
 
 # grant permission to scripts
-RUN chmod 755 /entrypoint.sh && \
-   chmod 755 /entrypoint-scripts/wazuh-agent.init.sh
-   
+RUN chmod 755 /entrypoint.sh
+
+# 
+COPY script/wazuh-agent.runit.service /etc/service/wazuh-agent/run
+
+RUN chmod +x /etc/service/wazuh-agent/run
+
 ENTRYPOINT ["/entrypoint.sh"]
