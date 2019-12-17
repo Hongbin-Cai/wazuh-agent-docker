@@ -3,14 +3,18 @@ FROM phusion/baseimage:latest
 
 # Set repositories
 RUN apt-cache search gnupg2 && apt-get update && \
-    apt-get install -y curl apt-transport-https lsb-release gnupg2 && \
+    apt-get install -y curl apt-transport-https lsb-release gnupg2 python && \
+    # Install python docker library for docker-listener module
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py && \
+    pip install docker && \
+    # Download and install wazuh-agent
     curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add - && \
     echo "deb https://packages.wazuh.com/3.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list && \
     apt-get update && \
-    # HARDCODED VARIABLE
-    WAZUH_MANAGER_IP="******" apt-get install -y wazuh-agent && \
-    # apt-get install wazuh-agent && \
-    # disable wazuh-agent update
+    WAZUH_MANAGER_IP="wazuh-manager-master-0.wazuh-cluster.wazuh.svc.cluster.local" && \
+    apt-get install -y wazuh-agent && \
+    # Disable wazuh-agent update
     sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list && \
     sed -i "s/udp/tcp/" /var/ossec/etc/ossec.conf && \
     apt-get update
